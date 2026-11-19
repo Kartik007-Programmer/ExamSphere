@@ -52,6 +52,7 @@ public class SecurityConfig {
                                 "/api/auth/register",
                                 "/api/auth/login"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET,"/api/auth/PING").permitAll()
                         .requestMatchers("/api/auth/me").authenticated()
                         .anyRequest().denyAll()
                 )

@@ -36,6 +36,30 @@ public class QuestionController {
         this.internalServiceKey = internalServiceKey;
     }
 
+    @GetMapping("/PING")
+    public String ping() {
+        return "<h1 style=\"\n" +
+                "  margin: 0;\n" +
+                "  min-height: 100vh;\n" +
+                "  display: flex;\n" +
+                "  align-items: center;\n" +
+                "  justify-content: center;\n" +
+                "  text-align: center;\n" +
+                "  padding: 24px;\n" +
+                "  box-sizing: border-box;\n" +
+                "  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n" +
+                "  font-size: clamp(2rem, 5vw, 3.5rem);\n" +
+                "  font-weight: 800;\n" +
+                "  letter-spacing: -0.02em;\n" +
+                "  line-height: 1.2;\n" +
+                "  color: #1e293b;\n" +
+                "  background: radial-gradient(circle at top, #ecfeff 0%, #f8fafc 60%, #e2e8f0 100%);\n" +
+                "  text-shadow: 0 4px 18px rgba(8, 145, 178, 0.18);\n" +
+                "\">\n" +
+                "  ❓ This is Question Service...\n" +
+                "</h1>";
+    }
+
     @PostMapping
     public ResponseEntity<QuestionResponse> create(
             @Valid @RequestBody CreateQuestionRequest request,

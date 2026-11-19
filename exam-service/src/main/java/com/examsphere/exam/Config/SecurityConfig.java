@@ -41,6 +41,8 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/api/exams/PING").permitAll()
+
                         // Students must be able to read the attempt-info for an exam they will take
                         .requestMatchers(HttpMethod.GET, "/api/exams/*/attempt-info")
                         .hasAnyRole("STUDENT", "TEACHER", "ADMIN")

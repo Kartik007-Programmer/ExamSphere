@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/api/attempts/exams/PING").permitAll()
                         // Students perform attempts
                         .requestMatchers(HttpMethod.POST, "/api/attempts/exams/*/start")
                         .hasAnyRole("STUDENT", "TEACHER", "ADMIN")

@@ -44,7 +44,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 HttpMethod.GET,
-                                "/api/questions/internal/**"
+                                "/api/questions/internal/**",
+                                "/api/questions/PING"
                         ).permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/questions/student/**")
