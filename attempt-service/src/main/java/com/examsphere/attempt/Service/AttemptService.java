@@ -6,6 +6,7 @@ import com.examsphere.attempt.Repository.*;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -13,6 +14,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AttemptService {
@@ -29,14 +31,16 @@ public class AttemptService {
             AttemptAnswerRepository answerRepository,
             AttemptQuestionSnapshotRepository snapshotRepository,
             ExamClient examClient,
-            QuestionClient questionClient) {
+            QuestionClient questionClient,
+            Clock clock) {
 
         this.attemptRepository = attemptRepository;
         this.answerRepository = answerRepository;
         this.snapshotRepository = snapshotRepository;
         this.examClient = examClient;
         this.questionClient = questionClient;
-        this.clock = Clock.offset(Clock.systemUTC(), java.time.Duration.ofMinutes(330));    }
+        this.clock = clock;
+    }
 
     @Transactional
     public StartAttemptResponse startAttempt(
@@ -133,7 +137,7 @@ public class AttemptService {
     }
 
     @Transactional
-    public void saveAnswer(
+    public Optional<SubmitAttemptResponse> saveAnswer(
             Long attemptId,
             Long studentId,
             Long questionId,
@@ -142,17 +146,14 @@ public class AttemptService {
         ExamAttempt attempt = findOwnedAttempt(attemptId, studentId);
 
         if (attempt.getStatus() != AttemptStatus.IN_PROGRESS) {
-            System.out.println("This attempt is already submitted");
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "This attempt is already submitted");
         }
 
         if (!Instant.now(clock).isBefore(attempt.getExpiresAt())) {
-            System.out.println(" Exam is not Expired! ");
-            submitInternally(attempt, true);
-
-            return;
+            SubmitAttemptResponse submitted = submitInternally(attempt, true);
+            return Optional.of(submitted);
         }
 
         snapshotRepository
@@ -164,14 +165,11 @@ public class AttemptService {
         AttemptAnswer answer = answerRepository
                 .findByAttemptIdAndQuestionId(attemptId, questionId)
                 .orElseGet(() -> new AttemptAnswer(
-                        attemptId,
-                        questionId,
-                        request.selectedOption()
-                ));
+                        attemptId, questionId, request.selectedOption()));
 
         answer.updateAnswer(request.selectedOption());
-
         answerRepository.save(answer);
+        return Optional.empty();
     }
 
     @Transactional
@@ -317,5 +315,25 @@ public class AttemptService {
                 attempt.getExpiresAt(),
                 questions
         );
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void autoSubmitExpiredAttempt(Long attemptId) {
+        ExamAttempt attempt = attemptRepository.findById(attemptId)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Attempt not found")
+                );
+
+        if (attempt.getStatus() != AttemptStatus.IN_PROGRESS) {
+            return;
+        }
+
+        if (Instant.now(clock).isBefore(attempt.getExpiresAt())) {
+            return;
+        }
+
+        submitInternally(attempt, true);
     }
 }

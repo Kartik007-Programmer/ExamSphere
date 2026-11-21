@@ -63,20 +63,16 @@ public class AttemptController {
     }
 
     @PutMapping("/{attemptId}/questions/{questionId}/answer")
-    public ResponseEntity<Void> saveAnswer(
+    public ResponseEntity<?> saveAnswer(
             @PathVariable Long attemptId,
             @PathVariable Long questionId,
             @Valid @RequestBody SaveAnswerRequest request,
             @AuthenticationPrincipal Jwt jwt) {
 
-        attemptService.saveAnswer(
-                attemptId,
-                currentStudentId(jwt),
-                questionId,
-                request
-        );
-
-        return ResponseEntity.noContent().build();
+        return attemptService
+                .saveAnswer(attemptId, currentStudentId(jwt), questionId, request)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     @PostMapping("/{attemptId}/submit")

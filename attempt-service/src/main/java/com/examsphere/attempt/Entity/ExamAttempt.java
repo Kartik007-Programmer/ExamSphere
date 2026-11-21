@@ -9,6 +9,10 @@ import java.time.Instant;
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_attempt_exam_student",
                 columnNames = {"exam_id", "student_id"}
+        ),
+        indexes = @Index(
+                name = "idx_attempts_expiry",
+                columnList = "status, expires_at, id"
         )
 )
 public class ExamAttempt {
@@ -26,7 +30,7 @@ public class ExamAttempt {
     @Column(nullable = false)
     private Instant startedAt;
 
-    @Column(nullable = false)
+    @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
 
     private Instant submittedAt;

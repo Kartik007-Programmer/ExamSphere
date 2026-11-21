@@ -22,13 +22,15 @@ public class ExamService {
 
     private final ExamRepository examRepository;
     private final QuestionClient questionClient;
+    private final Clock clock;
 
     public ExamService(
             ExamRepository examRepository,
-            QuestionClient questionClient) {
-
+            QuestionClient questionClient,
+            Clock clock) {
         this.examRepository = examRepository;
         this.questionClient = questionClient;
+        this.clock = clock;
     }
 
     @Transactional
@@ -174,7 +176,7 @@ public class ExamService {
 
         Exam exam = findExam(id);
 
-        Instant now = Instant.now(Clock.offset(Clock.systemUTC(), java.time.Duration.ofMinutes(330)));
+        Instant now = Instant.now(clock);
 
         if (exam.getStatus() != ExamStatus.PUBLISHED) {
             System.out.println("Exam is not published");
